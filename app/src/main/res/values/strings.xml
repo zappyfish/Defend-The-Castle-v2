@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Defend The Castle</string>
+
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_main_screen">Defend the Castle</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_draw_shield">DrawShield</string>
+
+    <string name="title_activity_game">GameActivity</string>
+</resources>

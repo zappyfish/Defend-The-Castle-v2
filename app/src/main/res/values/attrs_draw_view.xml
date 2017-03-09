@@ -1,0 +1,8 @@
+<resources>
+    <declare-styleable name="DrawView">
+        <attr name="exampleStringD" format="string" />
+        <attr name="exampleDimensionD" format="dimension" />
+        <attr name="exampleColorD" format="color" />
+        <attr name="exampleDrawableD" format="color|reference" />
+    </declare-styleable>
+</resources>
