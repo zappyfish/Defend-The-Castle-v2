@@ -10,9 +10,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainScreen extends AppCompatActivity {
-
+    Data d;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +31,11 @@ public class MainScreen extends AppCompatActivity {
                 startActivity(i);
             }
         });
+        d = new Data(this);
+        int score = d.getLocalHiscore();
+        TextView localScore = (TextView) findViewById(R.id.local_hiscore);
+        localScore.setText("Local Hiscore: " + score);
+
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

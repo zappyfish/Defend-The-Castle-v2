@@ -41,7 +41,7 @@ public class GameView extends View{
     private int health; // castle health
     private final int NUM_PROJ = 10;
     private Projectile[] projectileAr = new Projectile[NUM_PROJ]; // max of 10 at any given time
-    private int NUM_TICKS = 250;
+    private int NUM_TICKS = 200;
     Random rand = new Random();
     public int activeProjectiles = 0;
 
@@ -90,7 +90,8 @@ public class GameView extends View{
         }
         displayPoints(canvas);
         if(gameOver) {
-            gameOverHandler.postDelayed(gameOverRun, 1000);
+            gameOverHandler.postDelayed(gameOverRun, 500);
+            gameOver = false;
         }
     }
     // setup

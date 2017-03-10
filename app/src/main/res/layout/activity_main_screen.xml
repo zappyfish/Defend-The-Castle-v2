@@ -88,5 +88,16 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="51dp" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/local_hiscore"
+        android:gravity="center_horizontal"
+        android:layout_above="@+id/leaderboard"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="19dp"
+        android:textSize="35dp"
+        android:textColor="#000000"/>
+
 
 </RelativeLayout>

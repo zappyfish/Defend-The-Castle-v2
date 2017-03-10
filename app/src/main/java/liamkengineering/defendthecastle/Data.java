@@ -30,6 +30,9 @@ public class Data extends Activity {
     private final String FILENAME = "/shields/";
     SharedPreferences shields;
     //Activity a; // for debugging purposes only
+    private final String LOCAL_HISCORE = "LOCAL_HISCORE";
+    private final String LOCAL = "LOCAL";
+    SharedPreferences localHiscore;
 
     public Data(Activity a) {
         //this.a = a; // for debugging
@@ -39,6 +42,8 @@ public class Data extends Activity {
         else {
             numBMPs = 0;
         }
+        localHiscore = a.getApplicationContext().getSharedPreferences(LOCAL_HISCORE, 0);
+
     }
     // this method saves a bitmap of the shield to the SD card. it returns true for success,
     // false for failure
@@ -102,5 +107,19 @@ public class Data extends Activity {
         File rename = new File(dir, FILENAME + numBMPs + ".png");
         rename.renameTo(file); // rename the last file to the deleted file
         return true;
+    }
+
+    public boolean saveLocalHiscore(int score) {
+        int current_hiscore = localHiscore.getInt(LOCAL, 0);
+        if(score>current_hiscore) {
+            SharedPreferences.Editor editor = localHiscore.edit();
+            editor.putInt(LOCAL, score);
+            editor.commit();
+            return true;
+        }
+        return false;
+    }
+    public int getLocalHiscore() {
+        return localHiscore.getInt(LOCAL, 0);
     }
 }
