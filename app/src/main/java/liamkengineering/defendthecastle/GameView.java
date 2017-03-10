@@ -2,6 +2,7 @@ package liamkengineering.defendthecastle;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -9,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.Display;
@@ -19,23 +21,45 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.Random;
+
 /**
  * TODO: document your custom view class.
  */
 public class GameView extends View{
 
-    private Shield myShield;
-    private Data myData;
-    private Paint mPaint;
-    private Paint red, green, white;
+    private Shield myShield; // shield object for the view
+    private Data myData; // for getting bitmaps
+    private Paint mPaint; // for circle surrounding the castle in the center
+    private Paint red, green, white; // different paints
     private Drawable castle;
     private Paint background;
     GameActivity gameActivity;
     private float shieldRad;
-    private boolean shieldChange = false;
-    private float centreX, centreY, centreRad;
-    private int health;
+    private boolean shieldChange = false; // indicates whether the shield has been resized recently
+    private float centreX, centreY, centreRad; // centre of the screen + radius of castle in the center
+    private int health; // castle health
+    private final int NUM_PROJ = 10;
+    private Projectile[] projectileAr = new Projectile[NUM_PROJ]; // max of 10 at any given time
+    private int NUM_TICKS = 250;
+    Random rand = new Random();
+    public int activeProjectiles = 0;
 
+    private final int MAX_HEALTH = 8;
+    private GameObject centerObject;
+    private int numDestroyed;
+    Paint scorePaint;
+    private int MIN_TICKS = 100; // the minimum number of ticks required to reach the center
+
+    Handler gameOverHandler = new Handler();
+    Runnable gameOverRun = new Runnable() {
+        @Override
+        public void run() {
+            gameOver();
+        }
+    };
+
+    private boolean gameOver = false;
     public GameView(Context context) {
         super(context);
         init(context);
@@ -54,12 +78,20 @@ public class GameView extends View{
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawRect(0,0,getWidth(), getHeight(), background);
+        canvas.drawRect(0, 0, getWidth(), getHeight(), background);
         drawCastle(canvas, centreX, centreY, centreRad, mPaint, health, red, green, white);
-        if(myShield.visible) {
+        checkForContact(); // check for contact b/w shield and projectiles before drawing
+        checkForDamage(); // check to see if projectiles reached the center
+        for (int i = 0; i < NUM_PROJ; ++i) {
+            drawProjectile(canvas, projectileAr[i]);
+        }
+        if (myShield.visible) {
             drawShield(canvas);
         }
-
+        displayPoints(canvas);
+        if(gameOver) {
+            gameOverHandler.postDelayed(gameOverRun, 1000);
+        }
     }
     // setup
     public void init(Context c) {
@@ -92,7 +124,10 @@ public class GameView extends View{
         white = new Paint();
         white.setColor(Color.WHITE);
         gameActivity = (GameActivity) a;
-        health = 5; // castle can be hit 5 times before you lose
+        health = MAX_HEALTH;
+        numDestroyed = 0;
+        scorePaint = new Paint();
+        scorePaint.setColor(Color.BLACK);
     }
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -105,6 +140,10 @@ public class GameView extends View{
         float shieldSize = (float)(Math.sqrt(Math.pow(w, 2)+ Math.pow(h, 2))/20);
         shieldRad = shieldSize;
         shieldChange = true;
+        centerObject = new GameObject(centreRad, 0, w/2, h/2);
+        scorePaint.setTextSize(getWidth()/10);
+        castle.setBounds((int)(centreX-centreRad/2), (int)(centreY-centreRad/2),
+                (int)(centreX+centreRad/2), (int)(centreY+centreRad/2));
     }
     @Override
     public boolean onTouchEvent(MotionEvent e) {
@@ -166,8 +205,96 @@ public class GameView extends View{
         else {
             c.drawCircle(x, y, rad, red);
         }
-        float bottom = (y-rad)+ ((5-(float)health)/5)*(2*rad);
+        float bottom = (y-rad)+ ((MAX_HEALTH-(float)health)/MAX_HEALTH)*(2*rad); // bottom of cropping rectangle
+        // we start from the top, and then find the amount of damag done (i.e. maxhealt-current health)
+        // and multiply this by the diameter of the circle (i.e. the height of the rectangle) to get the
+        // proportional height of the rectangle
         c.drawRect(x-rad, y-rad, x+rad, bottom, white);
         c.drawCircle(x, y, rad, circlePaint);
+        if(c!=null)castle.draw(c);
+    }
+    private void drawProjectile(Canvas c, Projectile p) {
+        if(p!=null) {
+            c.drawCircle(p.getX(), p.getY(), p.getRad(), p.pPaint);
+        }
+    }
+    public void updateProjectileAr() {
+        for(int i = 0; i< NUM_PROJ; ++i) {
+            if(projectileAr[i]!=null) {
+                projectileAr[i].translate();
+            }
+        }
+    }
+    public void addProjectile(int index) {
+        if(index >= 0 && index<NUM_PROJ) {
+            projectileAr[index] = newProjectile();
+            ++activeProjectiles;
+        }
+    }
+    // this method creates and returns a new projectile. It randomly selects a size and then
+    // randomly selects a starting location for the projectile.
+    private Projectile newProjectile() {
+        float rad = ((rand.nextFloat()/2)+(float)0.5)*(getWidth()/20);
+        boolean x_or_y = rand.nextBoolean(); // whether the new projectile starts at the left/right
+        //edges of the screen or the top/bottom edges
+        float x, y;
+        if(x_or_y) {
+            x = (rand.nextBoolean() ? 0: getWidth()); // either the left side or the right side
+            y = getHeight()*rand.nextFloat();
+        }
+        else {
+            y = (rand.nextBoolean() ? 0: getHeight()); // top or bottom
+            x = getWidth()*rand.nextFloat();
+        }
+        Projectile p = new Projectile(rad, Color.BLACK, x, y, centreX, centreY, NUM_TICKS);
+        return p;
+    }
+    // loop through all of the projectiles checking for contact b/w the projectile and the shield.
+    // if there is contact, then "delete" that projectile and reduce the number of active projectiles
+    private void checkForContact() {
+        if(myShield.visible) { // only makes sense to check if the shield is actually visible
+            for (int i = 0; i < NUM_PROJ; ++i) {
+                if (projectileAr[i] != null) {
+                    if (GameObject.contact(myShield, projectileAr[i])) {
+                        projectileAr[i] = null;
+                        --activeProjectiles;
+                        ++numDestroyed;
+                    }
+                }
+            }
+        }
+    }
+    public boolean isProjNull(int ind) {
+        return projectileAr[ind] == null;
+    }
+    private void checkForDamage() {
+        for(int i = 0; i<NUM_PROJ; ++i) {
+            if(projectileAr[i]!=null) {
+                if(GameObject.contact(centerObject, projectileAr[i])) {
+                    projectileAr[i] = null;
+                    --health;
+                    if(health == 0) {
+                        gameOver = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    private void gameOver() {
+        Intent i = new Intent(gameActivity, GameOver.class);
+        i.putExtra("score", numDestroyed);
+        gameActivity.startActivity(i);
+    }
+
+    public void decNumTicks() {
+        if(NUM_TICKS>MIN_TICKS) {
+            --NUM_TICKS;
+        }
+    }
+    public void displayPoints(Canvas c) {
+        float x = scorePaint.measureText("Score: " + numDestroyed); // get the width of the text
+        x = getWidth()/2 - x/2; // shift to the left by the width of the text/2 to center
+        c.drawText("Score: " + numDestroyed, x, getHeight()/8, scorePaint);
     }
 }
