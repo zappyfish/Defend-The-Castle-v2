@@ -32,7 +32,7 @@ public class DrawView extends View {
         p.setStyle(Paint.Style.STROKE);
         p.setStrokeJoin(Paint.Join.ROUND);
         p.setStrokeCap(Paint.Cap.ROUND);
-        p.setStrokeWidth(12);
+        p.setStrokeWidth(30);
     }
 
 

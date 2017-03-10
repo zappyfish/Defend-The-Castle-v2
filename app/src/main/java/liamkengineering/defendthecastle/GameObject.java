@@ -38,4 +38,7 @@ public class GameObject {
     public void setY(float y) {
         this.y = y;
     }
+    public void setRadius(float newRad) {
+        this.radius = newRad;
+    }
 }
