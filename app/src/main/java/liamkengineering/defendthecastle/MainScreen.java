@@ -11,9 +11,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainScreen extends AppCompatActivity {
+
+    String[] topScoreAr = new String[Data.NUM_TOP_SCORES];
+    TextView[] scoreViews = new TextView[5];
     Data d;
+
+    int[] topScores = new int[5];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,6 +28,12 @@ public class MainScreen extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.showOverflowMenu();
 
+        Intent myIntent = getIntent();
+        topScoreAr = myIntent.getStringArrayExtra("top scores");
+        if(topScoreAr == null)
+        {
+            Toast.makeText(this, "null", Toast.LENGTH_SHORT).show();
+        }
         Button start = (Button) findViewById(R.id.start);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -32,10 +44,22 @@ public class MainScreen extends AppCompatActivity {
             }
         });
         d = new Data(this);
+        scoreViews[0] = (TextView)findViewById(R.id.top1);
+        scoreViews[1] = (TextView) findViewById(R.id.top2);
+        scoreViews[2] = (TextView) findViewById(R.id.top3);
+        scoreViews[3] = (TextView) findViewById(R.id.top4);
+        scoreViews[4] = (TextView) findViewById(R.id.top5);
         int score = d.getLocalHiscore();
         TextView localScore = (TextView) findViewById(R.id.local_hiscore);
         localScore.setText("Local Hiscore: " + score);
 
+        if(topScoreAr!=null) {
+            for(int i = 0; i<5; ++i) {
+                if(topScoreAr[i]!=null) {
+                    scoreViews[4-i].setText((5-i) + ": " + topScoreAr[i]);
+                }
+            }
+        }
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -58,4 +82,5 @@ public class MainScreen extends AppCompatActivity {
         }
         return true;
     }
+
 }

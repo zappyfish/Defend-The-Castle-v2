@@ -19,6 +19,8 @@ import android.widget.TextView;
 public class GameOver extends AppCompatActivity {
 
     Data d;
+    private int score;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,7 +29,7 @@ public class GameOver extends AppCompatActivity {
         setSupportActionBar(toolbar);
         Intent myIntent = getIntent();
         d = new Data(this);
-        int score = myIntent.getIntExtra("score", 0);
+        score = myIntent.getIntExtra("score", 0);
         d.saveLocalHiscore(score);
         TextView gameScore = (TextView) findViewById(R.id.display_score);
         gameScore.setText("You destroyed " + score + " projectiles! Great job.");
@@ -62,6 +64,10 @@ public class GameOver extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         // submit here
+                        String usr = input.getText().toString();
+                        d.saveScore(score, usr);
+                        Intent intent = new Intent(GameOver.this, SplashScreen.class);
+                        startActivity(intent);
                     }
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override

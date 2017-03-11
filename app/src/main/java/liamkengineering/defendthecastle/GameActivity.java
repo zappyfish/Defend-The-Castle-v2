@@ -18,6 +18,8 @@ import android.view.WindowManager;
  */
 public class GameActivity extends AppCompatActivity {
     int ind = 0;
+    int delay = 1000;
+
     Handler projectileHandler = new Handler();
     Runnable projectileRun = new Runnable() {
         @Override
@@ -36,9 +38,12 @@ public class GameActivity extends AppCompatActivity {
                 // most recently destroyed.
                 gv.addProjectile(ind);
             }
-            projectileHandler.postDelayed(addProj, 1000);
+            projectileHandler.postDelayed(addProj, delay);
+            if(delay>200) {
+                delay-=50;
+            }
             ind = (++ind)%10;
-            gv.decNumTicks();
+            gv.decNumTicks(20);
         }
     };
     private GameView gv;

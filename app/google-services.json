@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "922172663464",
+    "firebase_url": "https://defend-the-castle-5ba44.firebaseio.com",
+    "project_id": "defend-the-castle-5ba44",
+    "storage_bucket": "defend-the-castle-5ba44.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:922172663464:android:407d797739a50e88",
+        "android_client_info": {
+          "package_name": "liamkengineering.defendthecastle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "922172663464-k4b52cga8f4euos2d17e74rvtcd37ar4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrK0Up_IA1JL-giRct5NkBxHdiIQMaOZU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

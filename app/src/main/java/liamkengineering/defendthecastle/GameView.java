@@ -288,9 +288,9 @@ public class GameView extends View{
         gameActivity.startActivity(i);
     }
 
-    public void decNumTicks() {
+    public void decNumTicks(int decAmt) {
         if(NUM_TICKS>MIN_TICKS) {
-            --NUM_TICKS;
+            NUM_TICKS-=decAmt;
         }
     }
     public void displayPoints(Canvas c) {
