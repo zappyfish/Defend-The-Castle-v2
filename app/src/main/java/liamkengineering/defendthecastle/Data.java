@@ -48,6 +48,9 @@ public class Data extends Activity {
     private final String SCORE_KEY = "TOP_SCORES";
     public String[] topScores;
     public static final int NUM_TOP_SCORES = 5;
+    private final String CENTER_FINGER = "CENTERORNOT";
+    private final String STATE_FINGER = "center";
+    SharedPreferences center;
 
 
     public Data(Activity a) {
@@ -61,6 +64,7 @@ public class Data extends Activity {
         localHiscore = a.getApplicationContext().getSharedPreferences(LOCAL_HISCORE, 0);
         mDatabase = database.getReference(SCORE_KEY);
         topScores = new String[NUM_TOP_SCORES];
+        center = a.getApplicationContext().getSharedPreferences(CENTER_FINGER, 0);
     }
     // this method saves a bitmap of the shield to the SD card. it returns true for success,
     // false for failure
@@ -153,6 +157,16 @@ public class Data extends Activity {
 
     }
 
+    public int getCenterFinger() {
+        return center.getInt(STATE_FINGER, 0);
+    }
+
+    public void setCenterFinger(int set) {
+        SharedPreferences.Editor editor = center.edit();
+        editor.putInt(STATE_FINGER, set);
+        editor.commit();
+    }
+
     public void retrieveTopFive(Intent i, Activity a) {
         final PassData pd = new PassData(i, a);
         Query queryRef = mDatabase.orderByChild("score").limitToLast(NUM_TOP_SCORES);
@@ -176,6 +190,7 @@ public class Data extends Activity {
                 pd.start(null, "top scores");
             }
         });
+
     }
 
     public class PassData {

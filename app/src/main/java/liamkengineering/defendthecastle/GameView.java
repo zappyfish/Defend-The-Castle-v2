@@ -32,7 +32,7 @@ public class GameView extends View{
     private Shield myShield; // shield object for the view
     private Data myData; // for getting bitmaps
     private Paint mPaint; // for circle surrounding the castle in the center
-    private Paint red, green, white; // different paints
+    private Paint red, green, white, black; // different paints
     private Drawable castle;
     private Paint background;
     GameActivity gameActivity;
@@ -43,11 +43,12 @@ public class GameView extends View{
     private final int NUM_PROJ = 10;
     private Projectile[] projectileAr = new Projectile[NUM_PROJ]; // max of 10 at any given time
     private Projectile[] destroyedProjectile = new Projectile[NUM_PROJ];
-    private int NUM_TICKS = 200;
+    private int NUM_TICKS = 200; // number of ticks that it takes a projectile to reach the
+    // center of the screen
     Random rand = new Random();
     public int activeProjectiles = 0;
 
-    private final int MAX_HEALTH = 8;
+    private final int MAX_HEALTH = 10;
     private GameObject centerObject;
     private int numDestroyed;
     Paint scorePaint;
@@ -63,6 +64,9 @@ public class GameView extends View{
     };
 
     private boolean gameOver = false;
+    private boolean topHalf;
+    private boolean bottomHalf;
+
     public GameView(Context context) {
         super(context);
         init(context);
@@ -82,6 +86,7 @@ public class GameView extends View{
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawRect(0, 0, getWidth(), getHeight(), background);
+        canvas.drawLine(0, getHeight()/2, getWidth(), getHeight()/2, black);
         drawCastle(canvas, centreX, centreY, centreRad, mPaint, health, red, green, white);
         checkForContact(); // check for contact b/w shield and projectiles before drawing
         checkForDamage(); // check to see if projectiles reached the center
@@ -113,11 +118,13 @@ public class GameView extends View{
         if(sharedShield.contains("shield")) {
             int shieldNum = sharedShield.getInt("shield", 0);
             Bitmap bmp = myData.getBMP(shieldNum);
-            myShield = new Shield(1, 0, 0, bmp); // init rad to 1. it'll change upon call
+            boolean center = myData.getCenterFinger() == 1 ? true : false;
+            myShield = new Shield(1, 0, 0, bmp, center); // init rad to 1. it'll change upon call
             // to onWindowFocusChanged
         }
         else {
-            myShield = new Shield(1, 0, 0, null);
+            boolean center = myData.getCenterFinger() == 1 ? true : false;
+            myShield = new Shield(1, 0, 0, null, center);
         }
         mPaint = new Paint();
         mPaint.setColor(Color.BLACK);
@@ -132,6 +139,8 @@ public class GameView extends View{
         green.setColor(Color.GREEN);
         white = new Paint();
         white.setColor(Color.WHITE);
+        black = new Paint();
+        black.setColor(Color.BLACK);
         gameActivity = (GameActivity) a;
         health = MAX_HEALTH;
         numDestroyed = 0;
@@ -156,17 +165,21 @@ public class GameView extends View{
     }
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        myShield.setX(e.getX()+myShield.getRad());
-        myShield.setY(e.getY()-myShield.getRad());
+        myShield.setX(e.getX());
+        myShield.setY(e.getY());
 
         switch(e.getAction()) { // draw the shield in the new position if a move or touch down
             case MotionEvent.ACTION_DOWN:
+                setHalf(myShield.getY(), myShield.getRad());
                 myShield.visible = true;
+                checkHalf(myShield); // first check if it's in the right half. Then, check
+                // if it's in the centre to avoid drawing inside the castle
                 checkInCentre(myShield, centreX, centreY, centreRad);
                 invalidate();
                 break;
             case MotionEvent.ACTION_MOVE:
                 myShield.visible = true;
+                checkHalf(myShield);
                 checkInCentre(myShield, centreX, centreY, centreRad);
                 invalidate();
                 break;
@@ -200,8 +213,8 @@ public class GameView extends View{
             float distFromCentre = s.getRad() + centreRad;
             float newX = (centreX)+((difX/totDist)*distFromCentre);
             float newY = (centreY)+((difY/totDist)*distFromCentre);
-            s.setX(newX);
-            s.setY(newY);
+            s.setXnoOffset(newX);
+            s.setYnoOffset(newY);
         }
 
     }
@@ -361,4 +374,37 @@ public class GameView extends View{
         }
     }
 
+    // this method checks to see if the user has attempted to move the shield from one half
+    // to the other without taking their finger off the screen (aka CHEATING)
+    public boolean checkHalf(Shield s) {
+        float y = s.getY();
+        if(topHalf) {
+            float distCentreToTop = getHeight()/2-y;
+            if(distCentreToTop <= s.getRad()) {
+                s.setYnoOffset(getHeight()/2 - s.getRad());
+            }
+        }
+        else if (bottomHalf) {
+            float bottomToCentre = y - getHeight()/2;
+            if(bottomToCentre <= s.getRad()) {
+                s.setYnoOffset(getHeight()/2 + s.getRad());
+            }
+        }
+        return true;
+    }
+
+    // this method is just for setting which half a touch ACTION_DOWN event occured in
+    public void setHalf(float y, float rad) {
+        if(y>= getHeight()/2) {
+            topHalf = false;
+            bottomHalf = true;
+        }
+        else if(y< getHeight()/2){
+            topHalf = true;
+            bottomHalf = false;
+        }
+        else {
+
+        }
+    }
 }

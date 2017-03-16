@@ -56,7 +56,13 @@ public class MainScreen extends AppCompatActivity {
         scoreViews[4] = (TextView) findViewById(R.id.top5);
         int score = d.getLocalHiscore();
         TextView localScore = (TextView) findViewById(R.id.local_hiscore);
-        localScore.setText("Local Hiscore: " + score);
+        if(score == 0) {
+            localScore.setText("First time playing? Be sure to check out settings and" +
+                    " design your own shield in the top right");
+            localScore.setTextSize(20);
+            localScore.setPadding(10,10,10,10);
+        }
+        else localScore.setText("Local Hiscore: " + score);
 
         if(topScoreAr!=null) {
             for(int i = 0; i<5; ++i) {

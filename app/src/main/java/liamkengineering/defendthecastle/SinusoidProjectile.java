@@ -14,6 +14,7 @@ public class SinusoidProjectile extends Projectile {
     private int xDirec, yDirec;
     private float period;
 
+
     public SinusoidProjectile(float rad, int col, float xstart, float ystart, float targetX, float targetY,
                               int tickstoCentre, float amp, float period) {
         super(rad, col, xstart, ystart, targetX, targetY, tickstoCentre);

@@ -13,11 +13,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 public class Settings extends AppCompatActivity {
 
@@ -26,6 +29,7 @@ public class Settings extends AppCompatActivity {
     private Data d;
     private boolean displayDelete = false; // when a shield is selected, this becomes true so that
     // the delete button becomes available
+    private final String[] center_finger = {"Finger Centering is OFF", "Finger Centering is ON"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,8 +91,22 @@ public class Settings extends AppCompatActivity {
                 editor.putInt("shield", selectionID);
                 editor.commit(); // put the selection ID in the shared preferences so we know which
                 // one we are using. Then, go back to the main screen
-                Intent i = new Intent(Settings.this, MainScreen.class);
-                startActivity(i);
+                //Intent i = new Intent(Settings.this, MainScreen.class);
+                //startActivity(i);
+                finish();
+            }
+        });
+        int fingerCentered = d.getCenterFinger();
+        ToggleButton tb = (ToggleButton) findViewById(R.id.off_center);
+        tb.setChecked(fingerCentered == 1 ? true: false);
+        TextView tv = (TextView) findViewById(R.id.center_text);
+        tv.setText(center_finger[fingerCentered]); // hehe I love the expr ? x : y notation
+        tb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                d.setCenterFinger(b ? 1: 0);
+                TextView tv = (TextView) findViewById(R.id.center_text);
+                tv.setText(center_finger[b ? 1: 0]); // hehe I love the expr ? x : y notation
             }
         });
     }
@@ -127,6 +145,8 @@ public class Settings extends AppCompatActivity {
         builder.setPositiveButton("yes", dialog).setNegativeButton("no", dialog).show();
 
     }
+
+
 
 
     // Runescape is best game ever

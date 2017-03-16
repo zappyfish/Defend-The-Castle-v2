@@ -72,5 +72,23 @@
     </TableLayout>
 
     <include layout="@layout/content_settings" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Turn On Shield Off-Centering"
+            android:textColor="#000000" />
+        <ToggleButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/off_center"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/center_text"
+            android:gravity="center_horizontal" />
 </LinearLayout>
+
 </ScrollView>
