@@ -18,7 +18,8 @@ import android.widget.Toast;
 public class SplashScreen extends AppCompatActivity {
 
     Data d;
-
+    // add code so that if it takes longer than 5 seconds to retrieve scores, just go to the
+    // main screen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

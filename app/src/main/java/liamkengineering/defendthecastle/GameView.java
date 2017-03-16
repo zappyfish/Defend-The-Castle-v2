@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -41,6 +42,7 @@ public class GameView extends View{
     private int health; // castle health
     private final int NUM_PROJ = 10;
     private Projectile[] projectileAr = new Projectile[NUM_PROJ]; // max of 10 at any given time
+    private Projectile[] destroyedProjectile = new Projectile[NUM_PROJ];
     private int NUM_TICKS = 200;
     Random rand = new Random();
     public int activeProjectiles = 0;
@@ -50,6 +52,7 @@ public class GameView extends View{
     private int numDestroyed;
     Paint scorePaint;
     private int MIN_TICKS = 100; // the minimum number of ticks required to reach the center
+
 
     Handler gameOverHandler = new Handler();
     Runnable gameOverRun = new Runnable() {
@@ -87,6 +90,11 @@ public class GameView extends View{
         }
         if (myShield.visible) {
             drawShield(canvas);
+        }
+        for(int i = 0; i <NUM_PROJ; ++i) {
+            if(destroyedProjectile[i]!=null) {
+                drawDestroyed(canvas, destroyedProjectile[i]);
+            }
         }
         displayPoints(canvas);
         if(gameOver) {
@@ -225,10 +233,24 @@ public class GameView extends View{
                 projectileAr[i].translate();
             }
         }
+        // this part of the method draws red circles on top of where a projectile has just been
+        // destroyed
+        for(int i = 0; i<NUM_PROJ; ++i) {
+            if(destroyedProjectile[i] != null && destroyedProjectile[i].destroyed) {
+                if (destroyedProjectile[i].ticksSinceDestroyed > 0) {
+                    destroyedProjectile[i].ticksSinceDestroyed--;
+                } else {
+                    destroyedProjectile[i] = null;
+                    --activeProjectiles;
+                }
+            }
+        }
     }
+
     public void addProjectile(int index) {
         if(index >= 0 && index<NUM_PROJ) {
-            projectileAr[index] = newProjectile();
+            projectileAr[index] = (rand.nextBoolean() ? newProjectile() : newSineProj());
+            //projectileAr[index] = newSineProj();
             ++activeProjectiles;
         }
     }
@@ -250,6 +272,25 @@ public class GameView extends View{
         Projectile p = new Projectile(rad, Color.BLACK, x, y, centreX, centreY, NUM_TICKS);
         return p;
     }
+    private SinusoidProjectile newSineProj() {
+        float rad = ((rand.nextFloat()/2)+(float)0.5)*(getWidth()/20);
+        boolean x_or_y = rand.nextBoolean(); // whether the new projectile starts at the left/right
+        //edges of the screen or the top/bottom edges
+        float x, y;
+        if(x_or_y) {
+            x = (rand.nextBoolean() ? 0: getWidth()); // either the left side or the right side
+            y = getHeight()*rand.nextFloat();
+        }
+        else {
+            y = (rand.nextBoolean() ? 0: getHeight()); // top or bottom
+            x = getWidth()*rand.nextFloat();
+        }
+        float amp = rad*3;
+        float period = getWidth()/3;
+        SinusoidProjectile sp = new SinusoidProjectile(rad, Color.GRAY, x, y, centreX, centreY,
+                NUM_TICKS, amp, period);
+        return sp;
+    }
     // loop through all of the projectiles checking for contact b/w the projectile and the shield.
     // if there is contact, then "delete" that projectile and reduce the number of active projectiles
     private void checkForContact() {
@@ -257,6 +298,10 @@ public class GameView extends View{
             for (int i = 0; i < NUM_PROJ; ++i) {
                 if (projectileAr[i] != null) {
                     if (GameObject.contact(myShield, projectileAr[i])) {
+                        destroyedProjectile[i] = new Projectile(projectileAr[i].getRad(),
+                                0, projectileAr[i].getX(), projectileAr[i].getY(),
+                                projectileAr[i].getX(),projectileAr[i].getY(), 1);
+                        destroyedProjectile[i].destroy();
                         projectileAr[i] = null;
                         --activeProjectiles;
                         ++numDestroyed;
@@ -265,9 +310,11 @@ public class GameView extends View{
             }
         }
     }
+
     public boolean isProjNull(int ind) {
         return projectileAr[ind] == null;
     }
+
     private void checkForDamage() {
         for(int i = 0; i<NUM_PROJ; ++i) {
             if(projectileAr[i]!=null) {
@@ -298,4 +345,20 @@ public class GameView extends View{
         x = getWidth()/2 - x/2; // shift to the left by the width of the text/2 to center
         c.drawText("Score: " + numDestroyed, x, getHeight()/8, scorePaint);
     }
+
+    // this method draws 9 fading red circles on the location where a projectile has just
+    // been destroyed
+    private void drawDestroyed(Canvas c, Projectile p) {
+        Paint paint = new Paint();
+        paint.setARGB((int)(255*((float)p.ticksSinceDestroyed/Projectile.TICKS_AFTER_DESTRUCTION)), 255, 0 ,0);
+        float rad = p.getRad()/9;
+        for(int i = -1; i<2; ++i) {
+            float myY = i*p.getRad()+p.getY();
+            for(int j = -1; j<2; ++j) {
+                float myX = j*p.getRad()+p.getX();
+                c.drawCircle(myX, myY, rad, paint);
+            }
+        }
+    }
+
 }
